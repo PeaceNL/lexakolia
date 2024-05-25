@@ -8,6 +8,7 @@ const { Client} = require('pg');
 const { validator } = require('validator');
 const { check, oneOf, validationResult } = require('express-validator');
 const exp = require("constants");
+const bcrypt = require('bcrypt');
 
 
 const client = new Client({
@@ -33,13 +34,22 @@ register.get('/', (req, res) => {
 
 register.post('/', async (req, res) => {    
     const { login, password } = req.body;
+	
     try {
-        await client.query('INSERT INTO registration(login, pass) VALUES ($1,$2)',[login, password]);
+		const user = await client.query('SELECT * FROM registration WHERE login = $1', [login]);		
+		if (user.rows.length > 0) {
+			res.send(`Логин ${user.rows[0].login} уже существует`);
+		} else {
+			const hashPassword = await bcrypt.hash(password, 10);
+			await client.query('INSERT INTO registration(login, pass) VALUES ($1,$2)',[login, hashPassword]);
+			res.redirect(`/login`);
+		}
+        
     } catch (e) {
-        console.err(e)
+        console.log(e);
     }
     
-    res.redirect(`/login`);
+    
 });
 
 module.exports = register;

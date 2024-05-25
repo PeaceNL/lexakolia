@@ -7,6 +7,8 @@ const {Client} = require('pg');
 const register = require('./register.js');
 const { error } = require("console");
 const { check } = require('express-validator');
+const bcrypt = require('bcrypt');
+
 const client = new Client({
 	user: 'postgres',
 	password: 'postgres',
@@ -41,20 +43,25 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'publick', 'loginPage.html'))
 });
 
-app.post('/login',[
-	check('login').notEmpty().withMessage('Login is required'),
-	check('password').notEmpty().withMessage('Password is required')
-], async (req, res) => {
+app.post('/login', async (req, res) => {
     const {login, password} = req.body;
-    const user = await client.query('SELECT * FROM registration WHERE login = $1', [login]);
-    const loginInDB = user.rows[0].login;
-    const passwordInDB = user.rows[0].pass;    
-    
-    if (login === loginInDB && password === passwordInDB) {
-                res.send(`Zdarova ${login}`);  
-    } else {
-            res.status(404).send('opyat zalupa');
-    }                    
+	try {
+    	const user = await client.query('SELECT * FROM registration WHERE login = $1', [login]);
+		if (user.rows.length > 0) {			
+    		const passwordInDB = user.rows[0].pass;
+			const isMatch = await bcrypt.compare(password, passwordInDB);
+			if (isMatch) {
+				res.send(`Zdarova ${login}`);
+			}  else {
+				res.status(404).send('Неверный пароль!');
+			}   
+		} else {
+			res.status(404).send('User not found!');
+		}
+    	
+	} catch (e) {		
+		res.status(500).send('Ошибка сервера');
+	}                  
     
 })
 
