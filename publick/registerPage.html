@@ -13,11 +13,45 @@
             <li><a href="/register">Зарегистрировать кабину</a></li>
         </ul>
 
-        <form action="" method="post">
+        <form id="registerForm" method="post">
             <h2>Для регистрации введите данные:</h2>
             <input type="text" placeholder="Логин" name="login" id="login">
             <input type="password" placeholder="Пароль" name="password" id="password">
             <input type="submit" name="submit" value="Зарегистрировать">
         </form>
+        
+        <div id="message"></div>
+  
+        <script>
+            document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+          
+            const login = document.getElementById('login').value;
+            const password = document.getElementById('password').value;
+          
+            try {
+                const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                 },
+                 body: JSON.stringify({ login, password })
+            });
+    
+            const data = await response.json();
+            const messageDiv = document.getElementById('message');
+    
+            if (response.status === 201) {
+              messageDiv.textContent = data.message;
+              messageDiv.style.color = 'green';
+            } else {
+              messageDiv.textContent = data.message;
+              messageDiv.style.color = 'red';
+            }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+            });
+        </script>    
 </body>
 </html>
