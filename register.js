@@ -1,6 +1,6 @@
 const express = require("express");
 const path = require("path");
-// const db = require('./db');
+
 const bodyParser = require('body-parser');
 const register = express.Router();;
 const util = require('util');
@@ -49,12 +49,12 @@ register.post('/', loginPassValidation, async (req, res) => {
 	}	
 	
     try {
-		const user = await client.query('SELECT * FROM registration WHERE login = $1', [login]);		
+		const user = await client.query('SELECT * FROM registration WHERE login = $1', [login]);			
 		if (user.rows.length > 0) {
 			res.json({message: `Логин ${user.rows[0].login} уже существует`});
 		} else {
 			const hashPassword = await bcrypt.hash(password, 10);
-			await client.query('INSERT INTO registration(login, pass) VALUES ($1,$2)',[login, hashPassword]);
+			await client.query('INSERT INTO registration(login, pass, role) VALUES ($1,$2, 3)',[login, hashPassword]);
 			res.status(201).json({message: `Акаунт успешно создан!`});
 		}
         

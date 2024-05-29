@@ -11,7 +11,45 @@
             <li><a href="/">Главная страница</a></li>
             <li><a href="/login">Войти в личный кабинет</a></li>
             <li><a href="/register">Зарегистрировать кабину</a></li>
+            <li><a href="/users" id="protected-link">Сюда могут зайти только авторизованые полльзователи</a></li>
         </ul>
-    </body>
+    </h1>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const link = document.getElementById('protected-link');            
+                link.addEventListener('click', async (event) => {
+                    event.preventDefault(); // Остановить стандартное поведение ссылки
+                    const url = event.target.href;
+                    const accessToken = localStorage.getItem('accessToken');
+
+                    if (!accessToken) {
+                        alert('Токен не найден, пожалуйста, войдите в систему.');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            // Перенаправить на целевую страницу только если запрос успешный
+                            window.location.href = url;
+                        } else {
+                            const data = await response.json();
+                            alert(data.message || 'Ошибка авторизации');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Произошла ошибка при авторизации');
+                    }
+                });
+            
+        });
+    </script>
 </body>
 </html>

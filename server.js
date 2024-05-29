@@ -1,14 +1,17 @@
 const express = require("express");
 const app = express();
 const path = require("path");
-const db = require('./db');
+const dotenv = require("dotenv");
 const bodyParser = require('body-parser');
 const {Client} = require('pg');
 const register = require('./register.js');
-const { error } = require("console");
+const { error, log } = require("console");
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const midleware = require("./midleware.js");
 
+dotenv.config();
 const client = new Client({
 	user: 'postgres',
 	password: 'postgres',
@@ -27,6 +30,16 @@ client
 		console.error('Error connecting to PostgreSQL database', err);
 	});
 
+
+const createAccessToken = (login, role) => {
+	const payload = {
+		login,
+		role
+	};
+	const a = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: "15m"});
+	console.log(a);
+	return a;
+}	
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
@@ -53,16 +66,22 @@ app.post('/login',[
 		if (!result.isEmpty()) {
 			return res.status(400).json({message: result.errors[0].msg});			
 		}
-    	const user = await client.query('SELECT * FROM registration WHERE login = $1', [login]);
-		if (user.rows.length > 0) {			
+
+    	const user = await client.query('SELECT * FROM registration WHERE login = $1', [login]);		
+
+		if (user.rows.length > 0) {
+			const token = createAccessToken(user.rows[0].login, user.rows[0].role);		
     		const passwordInDB = user.rows[0].pass;
 			const isMatch = await bcrypt.compare(password, passwordInDB);
 			if (isMatch) {
-				res.status(202).json({message: `Zdarova ${login}`});
+				console.log('вошёл');
+				res.status(202).json({message: `Zdarova ${login}`, accessToken: token});				
 			}  else {
+				console.log('не тот пароль');
 				res.status(404).json({message: 'Неверный пароль!'});
 			}   
 		} else {
+			console.log('нет логина');
 			res.status(404).json({message: 'User not found!'});
 		}
     	
@@ -70,8 +89,12 @@ app.post('/login',[
 		res.status(500).json({message: 'Ошибка сервера'});
 	}                  
     
-})
+});
 
+app.get('/users', midleware, (req, res) => {
+	res.sendFile(path.join(__dirname, 'publick', 'users.html'));	
+ });
+ 
 
 
 app.listen(4001, () => console.log(`Сервер хуярит na 4001 porte`));
