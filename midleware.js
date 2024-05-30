@@ -6,8 +6,8 @@ module.exports = function(req, res, next) {
         return next();
     }    
     try {
-        const authHeader = req.headers.authorization;
-
+        const authHeader = req.cookies.accessToken;
+        console.log(authHeader);
         if (!authHeader) {
             return res.status(401).json({ message: 'Пользователь не авторизован: отсутствует заголовок Authorization' });
         }

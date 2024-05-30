@@ -23,40 +23,38 @@
 
 
     <div id="message"></div>
-  <!-- Не получается сделать так чтоб запрос добавлял в хедер accessToken(( в постмане всё работает корректно -->
+
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-          
-            const login = document.getElementById('login').value;
-            const password = document.getElementById('password').value;
-                
-            try {
-                const response = await fetch('/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ login, password })
-                });
-    
-                if (!response.ok) {
-                    throw new Error('Ошибка запроса');
-                }
-    
-                const data = await response.json();
-                localStorage.setItem('accessToken', data.accessToken);
-    
-                const messageDiv = document.getElementById('message');
-                messageDiv.textContent = data.message;
-                messageDiv.style.color = 'green';
-            } catch (error) {
-                console.error('Ошибка:', error);
-                const messageDiv = document.getElementById('message');
-                messageDiv.textContent = 'Произошла ошибка';
-                messageDiv.style.color = 'red';
-            }
+        e.preventDefault();
+      
+        const login = document.getElementById('login').value;
+        const password = document.getElementById('password').value;
+      
+        try {
+            const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+             },
+             body: JSON.stringify({ login, password })
+        });
+
+        const data = await response.json();
+        const messageDiv = document.getElementById('message');
+
+        if (response.status === 202) {
+          messageDiv.textContent = data.message;
+          messageDiv.style.color = 'green';
+        } else {
+          messageDiv.textContent = data.message;
+          messageDiv.style.color = 'red';
+        }
+        } catch (error) {
+            console.error('Error:', error);
+        }
         });
     </script>
+    
 </body>
 </html>

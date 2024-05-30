@@ -17,38 +17,15 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const link = document.getElementById('protected-link');            
-                link.addEventListener('click', async (event) => {
-                    event.preventDefault(); // Остановить стандартное поведение ссылки
-                    const url = event.target.href;
-                    const accessToken = localStorage.getItem('accessToken');
+            link.addEventListener('click', async (event) => {                 
+                    
+                document.cookie = `accessToken: ${accessToken}`;
 
-                    if (!accessToken) {
-                        alert('Токен не найден, пожалуйста, войдите в систему.');
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(url, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${accessToken}`
-                            }
-                        });
-
-                        if (response.ok) {
-                            // Перенаправить на целевую страницу только если запрос успешный
-                            window.location.href = url;
-                        } else {
-                            const data = await response.json();
-                            alert(data.message || 'Ошибка авторизации');
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('Произошла ошибка при авторизации');
-                    }
-                });
-            
+                if (!accessToken) {
+                    alert('Токен не найден, пожалуйста, войдите в систему.');
+                    return;
+                }      
+            });
         });
     </script>
 </body>

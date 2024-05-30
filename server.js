@@ -3,6 +3,7 @@ const app = express();
 const path = require("path");
 const dotenv = require("dotenv");
 const bodyParser = require('body-parser');
+const cookieParser = require("cookie-parser");
 const {Client} = require('pg');
 const register = require('./register.js');
 const { error, log } = require("console");
@@ -44,7 +45,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
   }));
-
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'publick')));
 app.use('/register', register); 
 
@@ -75,7 +76,8 @@ app.post('/login',[
 			const isMatch = await bcrypt.compare(password, passwordInDB);
 			if (isMatch) {
 				console.log('вошёл');
-				res.status(202).json({message: `Zdarova ${login}`, accessToken: token});				
+				res.cookie('accessToken', `Bearer ${token}`, { httpOnly: true, secure: true, sameSite: 'none' });
+				res.status(202).json({message: `Zdarova ${login}`});			
 			}  else {
 				console.log('не тот пароль');
 				res.status(404).json({message: 'Неверный пароль!'});
